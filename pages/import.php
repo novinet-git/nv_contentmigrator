@@ -16,8 +16,8 @@ if (rex_post('import', 'string')) {
 
     if (count($aFileContent["media"]) > 0) {
         $sContent = "";
-        foreach ($aFileContent["media"] as $sMedia) {
-            $sContent .= '<a href="' . $aFileContent["article"]["server"] . 'media/' . $sMedia . '" target="_blank">' . $sMedia . '</a><br />';
+        foreach ($aFileContent["media"] as $aMedia) {
+            $sContent .= '<a href="' . $aFileContent["article"]["server"] . 'media/' . $aMedia["filename"] . '" target="_blank">' . $aMedia['filename'].' ('.$aMedia['path'].')</a><br />';
         }
         $fragment = new rex_fragment();
         $fragment->setVar('title', $this->i18n('nv_contentmigrator_title_used_media'));

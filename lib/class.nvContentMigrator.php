@@ -4,6 +4,7 @@
     {
         $this->addon = rex_addon::get('nv_contentmigrator');
         $this->aDataColumns = array(
+            "status",
             "value1",
             "value2",
             "value3",
@@ -95,30 +96,32 @@
         $aOut = array();
 
         $aOut[] = '<div class="row">';
-        $aOut[] = '<div class="col-12"><strong>'.$this->addon->i18n('nv_contentmigrator_label_choose_article').'</strong><br><select class="form-control selectpicker" data-live-search="true" name="nv_articles_id">' . $this->parseTreeSelection("nv_articles_id", $aItems) . '</select></div>';
+        $aOut[] = '<div class="col-12"><strong>' . $this->addon->i18n('nv_contentmigrator_label_choose_article') . '</strong><br><select class="form-control selectpicker" data-live-search="true" name="nv_articles_id">' . $this->parseTreeSelection("nv_articles_id", $aItems) . '</select></div>';
         $aOut[] = '</div><br>';
 
         $sOut = implode("\n", $aOut);
         return $sOut;
     }
 
-    public function getUploadField() {
+    public function getUploadField()
+    {
         $aOut = array();
         $aOut = array();
 
         $aOut[] = '<div class="row">';
-        $aOut[] = '<div class="col-12"><strong>'.$this->addon->i18n('nv_contentmigrator_label_jsonfile').'</strong><br><input class="form-control" type="file" accept=".json" name="importfile" required="required"></div>';
+        $aOut[] = '<div class="col-12"><strong>' . $this->addon->i18n('nv_contentmigrator_label_jsonfile') . '</strong><br><input class="form-control" type="file" accept=".json" name="importfile" required="required"></div>';
         $aOut[] = '</div><br>';
 
         $sOut = implode("\n", $aOut);
         return $sOut;
     }
-    public function getConfirmationField() {
+    public function getConfirmationField()
+    {
         $aOut = array();
         $aOut = array();
 
         $aOut[] = '<div class="row">';
-        $aOut[] = '<div class="col-12"><input type="checkbox" name="confirmation" value="1" required="required"> '.$this->addon->i18n('nv_contentmigrator_label_confirm_import').'</div>';
+        $aOut[] = '<div class="col-12"><input type="checkbox" name="confirmation" value="1" required="required"> ' . $this->addon->i18n('nv_contentmigrator_label_confirm_import') . '</div>';
         $aOut[] = '</div><br>';
 
         $sOut = implode("\n", $aOut);
@@ -193,19 +196,19 @@
             }
             $aMediaUsed = $this->getUsedMedia($iArticlesId);
             $aSlice["media"] = $aMediaUsed;
-            foreach ($aMediaUsed as $sMedia) {
-                if (!in_array($sMedia, $aMediaUsedTotal)) {
-                    array_push($aMediaUsedTotal, $sMedia);
+            foreach ($aMediaUsed as $aMedia) {
+                if (!in_array($aMedia["filename"], array_column($aMediaUsedTotal, 'filename'))) {
+                    array_push($aMediaUsedTotal, $aMedia);
                 }
             }
             array_push($aArr["slices"], $aSlice);
             $aArr["media"] = $aMediaUsedTotal;
         }
 
-        /*
+/*
         dump($aArr);
         return;
-        */
+*/
 
         $sFileContent = json_encode($aArr);
 
@@ -215,7 +218,8 @@
         exit;
     }
 
-    public function import(int $iArticlesId,$aFileContent=[]) {
+    public function import(int $iArticlesId, $aFileContent = [])
+    {
 
         $oArticle = rex_article::get($iArticlesId);
         if (!$oArticle->getValue("id")) return;
@@ -227,18 +231,18 @@
         // update article data
         $oDb = rex_sql::factory();
         $oDb->setTable(rex::getTablePrefix() . 'article');
-        $oDb->setValue('template_id',$aFileContent["article"]["template_id"]);
+        $oDb->setValue('template_id', $aFileContent["article"]["template_id"]);
         $oDb->setWhere(['id' => $oArticle->getValue("id"), 'clang_id' => $aFileContent["article"]["clang_id"]]);
         $oDb->addGlobalUpdateFields();
         $oDb->update();
 
 
         // insert slices
-        foreach($aFileContent["slices"] AS $aItem) {
+        foreach ($aFileContent["slices"] as $aItem) {
 
             $aSlice = $aItem["slice"];
             $aData = $aItem["data"];
-            $oRes = rex_content_service::addSlice($oArticle->getValue("id"),$oArticle->getValue("clang_id"),$aSlice["ctype_id"],$aSlice["module_id"],$aData);                        
+            $oRes = rex_content_service::addSlice($oArticle->getValue("id"), $oArticle->getValue("clang_id"), $aSlice["ctype_id"], $aSlice["module_id"], $aData);
         }
 
         rex_article_cache::delete($oArticle->getValue("id"), $aFileContent["article"]["clang_id"]);
@@ -259,7 +263,24 @@
             foreach ($aItems as $aItem) {
                 $sFilename = $aItem['filename'];
                 if ($this->checkMediaUsed($sFilename, $iArticlesId)) {
-                    $aFiles[] = $sFilename;
+
+                    $aMediaPath = rex_media_category::get($aItem["category_id"])->getPathAsArray();
+                    if ($aItem["category_id"]) {
+                        $aMediaPath[] = $aItem["category_id"];
+                    }
+                    $aMediaPathLabel = [];
+                    foreach($aMediaPath AS $iCategoryId) {
+                        $aMediaPathLabel[] = rex_media_category::get($iCategoryId)->getName();
+                    }
+                    $sMediaPath = implode(" > ",$aMediaPathLabel);
+
+                    $aFiles[] = array(
+                        "id" => $aItem["id"],
+                        "filename" => $sFilename,
+                        "originalname" => $aItem["originalname"],
+                        "category_id" => $aItem["category_id"],
+                        "path" => $sMediaPath,
+                    );
                 }
             }
         }
