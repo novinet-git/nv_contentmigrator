@@ -154,6 +154,7 @@
 
         $aArr = array();
         $aArr["article"] = array(
+            "server" => rex::getServer(),
             "id" => $oArticle->getValue("id"),
             "name" => $oArticle->getName(),
             "template_id" => $oArticle->getValue("template_id"),

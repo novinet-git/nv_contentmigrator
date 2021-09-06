@@ -3,17 +3,27 @@ $oMigrator = new nvContentMigrator;
 $csrfToken = rex_csrf_token::factory('nv_contentmigrator');
 
 if (rex_post('import', 'string')) {
-   
-    if(!$csrfToken->isValid())  {
+
+    if (!$csrfToken->isValid()) {
         echo rex_view::error("Ein Fehler ist aufgetreten. Bitte wenden Sie sich an den Webmaster.");
         return;
     }
 
-    $aFileContent = json_decode(file_get_contents($_FILES["importfile"]["tmp_name"]),1);
+    $aFileContent = json_decode(file_get_contents($_FILES["importfile"]["tmp_name"]), 1);
     $iArticlesId = rex_request('nv_articles_id', 'int');
-    $oMigrator->import($iArticlesId,$aFileContent);
+    $oMigrator->import($iArticlesId, $aFileContent);
     echo rex_view::success($this->i18n('nv_contentmigrator_imported'));
 
+    if (count($aFileContent["media"]) > 0) {
+        $sContent = "";
+        foreach ($aFileContent["media"] as $sMedia) {
+            $sContent .= '<a href="' . $aFileContent["article"]["server"] . 'media/' . $sMedia . '" target="_blank">' . $sMedia . '</a><br />';
+        }
+        $fragment = new rex_fragment();
+        $fragment->setVar('title', $this->i18n('nv_contentmigrator_title_used_media'));
+        $fragment->setVar('body', $sContent, false);
+        echo $fragment->parse('core/page/section.php');
+    }
 }
 
 echo rex_view::warning($this->i18n('nv_contentmigrator_warning_content_deleted'));
@@ -27,7 +37,7 @@ $sContent .= '</div>';
 
 $formElements = [];
 $n = [];
-$n['field'] = '<button class="btn btn-save" type="submit" name="import" value="1">'.$this->i18n('nv_contentmigrator_btn_import').'</button>';
+$n['field'] = '<button class="btn btn-save" type="submit" name="import" value="1">' . $this->i18n('nv_contentmigrator_btn_import') . '</button>';
 $formElements[] = $n;
 
 $fragment = new rex_fragment();
@@ -47,8 +57,8 @@ $fragment->setVar("buttons", $buttons, false);
 $output = $fragment->parse('core/page/section.php');
 
 $output = '<form action="' . rex_url::currentBackendPage() . '" method="post" enctype="multipart/form-data">'
-. $csrfToken->getHiddenField() 
-. $output 
-. '</form>';
+    . $csrfToken->getHiddenField()
+    . $output
+    . '</form>';
 
 echo $output;

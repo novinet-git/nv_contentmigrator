@@ -11,3 +11,4 @@ nv_contentmigrator_info = Info
 nv_contentmigrator_label_choose_article = Artikel wählen
 nv_contentmigrator_label_jsonfile = JSON-Datei
 nv_contentmigrator_label_confirm_import = Ja, mir ist bewusst, dass alle Inhalte (Slices) des gewählten Artikels vor dem Import gelöscht werden
+nv_contentmigrator_title_used_media = Genutzte Medien
