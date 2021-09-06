@@ -1,0 +1,25 @@
+# Alle hier gesetzten Werte können über `$addon->getProperty($key)` abgefragt werden
+
+package: nv_contentmigrator # Pflichtfeld
+version: '1.0' # Pflichtfeld
+author: novinet GmbH & Co KG
+supportpage: https://novinet.de
+
+    
+    
+# Abhängigkeiten
+# Anforderungen ans System oder anderere AddOns, um dieses AddOn installieren oder update zu können
+requires:
+    redaxo: '^5.5' # benötigt mindestens REDAXO 5.5
+    php:
+        version: '>=5.6' # benötigt mindestens PHP 5.6
+
+
+page:
+    title: translate:title
+    icon: novinet-icon-logo
+    perm: 'nv_contentmigrator[]'
+    subpages:
+        export: { title: translate:export }
+        import: { title: translate:import }
+        info: { title: translate:info }

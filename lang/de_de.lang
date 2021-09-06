@@ -1,0 +1,13 @@
+nv_contentmigrator_title = nvContentMigrator
+nv_contentmigrator_imported = Die gewünschten Inhalte wurden importiert
+nv_contentmigrator_warning_content_deleted = Beim Import-Vorgang werden alle alten Inhalte (Slices) des Artikels gelöscht
+nv_contentmigrator_export = Exportieren
+nv_contentmigrator_import = Importieren
+nv_contentmigrator_btn_import = Importieren
+nv_contentmigrator_btn_export = Exportieren
+nv_contentmigrator_title_import = Inhalte (Slices) importieren
+nv_contentmigrator_title_export = Inhalte (Slices) exportieren
+nv_contentmigrator_info = Info
+nv_contentmigrator_label_choose_article = Artikel wählen
+nv_contentmigrator_label_jsonfile = JSON-Datei
+nv_contentmigrator_label_confirm_import = Ja, mir ist bewusst, dass alle Inhalte (Slices) des gewählten Artikels vor dem Import gelöscht werden
