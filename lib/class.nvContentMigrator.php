@@ -218,15 +218,20 @@
 
         $oArticle = rex_article::get($iArticlesId);
         if (!$oArticle->getValue("id")) return;
-        $oContent = new rex_article_content($oArticle->getValue("id"));
 
         // delete old content
         $oDb = rex_sql::factory();
         $oDb->setQuery("DELETE FROM " . rex::getTablePrefix() . "article_slice WHERE article_id = '$iArticlesId'");
 
         // update article data
-        $oContent->setTemplateId($aFileContent["article"]["template_id"]);
-        
+        $oDb = rex_sql::factory();
+        $oDb->setTable(rex::getTablePrefix() . 'article');
+        $oDb->setValue('template_id',$aFileContent["article"]["template_id"]);
+        $oDb->setWhere(['id' => $oArticle->getValue("id"), 'clang_id' => $aFileContent["article"]["clang_id"]]);
+        $oDb->addGlobalUpdateFields();
+        $oDb->update();
+
+
         // insert slices
         foreach($aFileContent["slices"] AS $aItem) {
 
@@ -235,7 +240,7 @@
             $oRes = rex_content_service::addSlice($oArticle->getValue("id"),$oArticle->getValue("clang_id"),$aSlice["ctype_id"],$aSlice["module_id"],$aData);                        
         }
 
-
+        rex_article_cache::delete($oArticle->getValue("id"), $aFileContent["article"]["clang_id"]);
     }
 
     public function getUsedMedia($iArticlesId)
