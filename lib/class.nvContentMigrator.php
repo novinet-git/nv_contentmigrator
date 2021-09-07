@@ -142,7 +142,7 @@
                 $aOut[] = '&nbsp;&nbsp;';
             }
 
-            $aOut[] = $aItem["name"] . '</option>';
+            $aOut[] = $aItem["name"] . ' (ID: '.$aItem["id"].')</option>';
             if (count($aItem["children"])) {
                 $aOut[] = $this->parseTreeSelection($sFieldname, $aItem["children"]);
             }

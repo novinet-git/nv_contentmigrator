@@ -40,15 +40,17 @@ if (rex_post('import', 'string')) {
 
         $sContent .= '</div>';
         foreach ($aFileContent["media"] as $aMedia) {
-            $sMediaExists = $this->i18n('nv_contentmigrator_no');
+            $sMediaExists = '<span class="text-danger">'.$this->i18n('nv_contentmigrator_no').'</span>';
+            $sClass = 'text-danger';
             $oExistingMedia = $oMigrator->checkMediaExists($aMedia["filename"],$aMedia["width"],$aMedia["height"],$aMedia["filesize"]);
-            if ($oExistingMedia->getValue("filename")) {
+            if ($oExistingMedia->getRows()) {
+                $sClass = '';
                 $sMediaExists = '<a href="'.rex::getServer().'media/'.$oExistingMedia->getValue("filename").'" target="_blank">'.$oExistingMedia->getValue("filename").'</a>';
             }
 
 
             $sContent .= '<div class="row">';
-            $sContent .= '<div class="col-lg-3"><a href="' . $aFileContent["article"]["server"] . 'media/' . $aMedia["filename"] . '" target="_blank">' . $aMedia['filename'].'</a></div>';
+            $sContent .= '<div class="col-lg-3"><a href="' . $aFileContent["article"]["server"] . 'media/' . $aMedia["filename"] . '" target="_blank" class="'.$sClass.'">' . $aMedia['filename'].'</a></div>';
             $sContent .= '<div class="col-lg-3">'.$aMedia["path"].'</div>';
             $sContent .= '<div class="col-lg-2">'.$aMedia["width"].'px</div>';
             $sContent .= '<div class="col-lg-2">'.$aMedia["height"].'px</div>';
