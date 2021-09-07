@@ -2,6 +2,21 @@
 $oMigrator = new nvContentMigrator;
 $csrfToken = rex_csrf_token::factory('nv_contentmigrator');
 
+/*
+if (rex_post('download', 'string')) {
+
+    if (!$csrfToken->isValid()) {
+        echo rex_view::error("Ein Fehler ist aufgetreten. Bitte wenden Sie sich an den Webmaster.");
+        return;
+    }
+
+    $aFileContent = json_decode(base64_decode(rex_post("filecontent")),1);
+
+    dump($aFileContent);
+
+    return;
+}
+*/
 if (rex_post('import', 'string')) {
 
     if (!$csrfToken->isValid()) {
@@ -15,15 +30,46 @@ if (rex_post('import', 'string')) {
     echo rex_view::success($this->i18n('nv_contentmigrator_imported'));
 
     if (count($aFileContent["media"]) > 0) {
-        $sContent = "";
+        $sContent = '<div class="container-fluid">';
+        $sContent .= '<div class="row">';
+        $sContent .= '<div class="col-lg-3"><strong>'.$this->i18n('nv_contentmigrator_label_filename').'</strong></div>';
+        $sContent .= '<div class="col-lg-3"><strong>'.$this->i18n('nv_contentmigrator_label_category').'</strong></div>';
+        $sContent .= '<div class="col-lg-2"><strong>'.$this->i18n('nv_contentmigrator_label_width').'</strong></div>';
+        $sContent .= '<div class="col-lg-2"><strong>'.$this->i18n('nv_contentmigrator_label_height').'</strong></div>';
+        $sContent .= '<div class="col-lg-2"><strong>'.$this->i18n('nv_contentmigrator_label_exists').'</strong></div>';
+
+        $sContent .= '</div>';
         foreach ($aFileContent["media"] as $aMedia) {
-            $sContent .= '<a href="' . $aFileContent["article"]["server"] . 'media/' . $aMedia["filename"] . '" target="_blank">' . $aMedia['filename'].' ('.$aMedia['path'].')</a><br />';
+            $sMediaExists = $this->i18n('nv_contentmigrator_no');
+            $oExistingMedia = $oMigrator->checkMediaExists($aMedia["filename"],$aMedia["width"],$aMedia["height"],$aMedia["filesize"]);
+            if ($oExistingMedia->getValue("filename")) {
+                $sMediaExists = '<a href="'.rex::getServer().'media/'.$oExistingMedia->getValue("filename").'" target="_blank">'.$oExistingMedia->getValue("filename").'</a>';
+            }
+
+
+            $sContent .= '<div class="row">';
+            $sContent .= '<div class="col-lg-3"><a href="' . $aFileContent["article"]["server"] . 'media/' . $aMedia["filename"] . '" target="_blank">' . $aMedia['filename'].'</a></div>';
+            $sContent .= '<div class="col-lg-3">'.$aMedia["path"].'</div>';
+            $sContent .= '<div class="col-lg-2">'.$aMedia["width"].'px</div>';
+            $sContent .= '<div class="col-lg-2">'.$aMedia["height"].'px</div>';
+            $sContent .= '<div class="col-lg-2">'.$sMediaExists.'</div>';
+            $sContent .= '</div>';
         }
+        $sContent .= '</div>';
+       
+
+
         $fragment = new rex_fragment();
-        $fragment->setVar('title', $this->i18n('nv_contentmigrator_title_used_media'));
+        $fragment->setVar("class", "edit");
+        $fragment->setVar('title', $this->i18n('nv_contentmigrator_title_used_media'), false);
         $fragment->setVar('body', $sContent, false);
-        echo $fragment->parse('core/page/section.php');
+        $output = $fragment->parse('core/page/section.php');
+        
+        echo $output;
     }
+
+
+    return;
 }
 
 echo rex_view::warning($this->i18n('nv_contentmigrator_warning_content_deleted'));

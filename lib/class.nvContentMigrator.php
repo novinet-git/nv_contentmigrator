@@ -4,6 +4,8 @@
     {
         $this->addon = rex_addon::get('nv_contentmigrator');
         $this->aDataColumns = array(
+            "priority",
+            "revision",
             "status",
             "value1",
             "value2",
@@ -172,7 +174,7 @@
 
         $aArr["slices"] = array();
         $oDbQ = rex_sql::factory();
-        $sQuery = "SELECT s.* FROM " . rex::getTablePrefix() . "article_slice AS s LEFT JOIN " . rex::getTablePrefix() . "article AS a ON s.article_id = a.id WHERE (a.id = '$iArticlesId' OR a.path LIKE '|$iArticlesId|%') && a.clang_id = '" . $this->getDefaultClangId() . "' ORDER BY s.priority ASC";
+        $sQuery = "SELECT s.* FROM " . rex::getTablePrefix() . "article_slice AS s LEFT JOIN " . rex::getTablePrefix() . "article AS a ON s.article_id = a.id WHERE (a.id = '$iArticlesId' OR a.path LIKE '|$iArticlesId|%') && a.clang_id = '" . $this->getDefaultClangId() . "'  && s.clang_id = '" . $this->getDefaultClangId() . "' ORDER BY s.priority ASC";
         $oDbQ->setQuery($sQuery);
         foreach ($oDbQ as $oRow) {
             $aSlice = array();
@@ -280,6 +282,9 @@
                         "originalname" => $aItem["originalname"],
                         "category_id" => $aItem["category_id"],
                         "path" => $sMediaPath,
+                        "filesize" => $aItem["filesize"],
+                        "width" => $aItem["width"],
+                        "height" => $aItem["height"]
                     );
                 }
             }
@@ -327,5 +332,12 @@
         }
 
         return false;
+    }
+
+    public function checkMediaExists($sFilename,$iWidth,$iHeight,$iFilesize) {
+        $oDb = rex_sql::factory();
+        $sQuery = 'SELECT * FROM ' . rex::getTablePrefix() . 'media WHERE filename = :filename && width = :width && height = :height && filesize = :filesize Limit 1';
+        $oDb->setQuery($sQuery,['filename' => $sFilename,'width' => $iWidth,'height' => $iHeight,'filesize' => $iFilesize]);
+        return $oDb;
     }
 }
