@@ -265,9 +265,9 @@
             foreach ($aItems as $aItem) {
                 $sFilename = $aItem['filename'];
                 if ($this->checkMediaUsed($sFilename, $iArticlesId)) {
-
-                    $aMediaPath = rex_media_category::get($aItem["category_id"])->getPathAsArray();
+                    $aMediaPath = [];
                     if ($aItem["category_id"]) {
+                        $aMediaPath = rex_media_category::get($aItem["category_id"])->getPathAsArray();
                         $aMediaPath[] = $aItem["category_id"];
                     }
                     $aMediaPathLabel = [];
