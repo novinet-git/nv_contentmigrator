@@ -1,5 +1,8 @@
 <?php class nvContentMigrator
 {
+
+    static $oAddon = "nv_contentmigrator";
+
     public function __construct()
     {
         $this->addon = rex_addon::get('nv_contentmigrator');
@@ -142,7 +145,7 @@
                 $aOut[] = '&nbsp;&nbsp;';
             }
 
-            $aOut[] = $aItem["name"] . ' (ID: '.$aItem["id"].')</option>';
+            $aOut[] = $aItem["name"] . ' (ID: ' . $aItem["id"] . ')</option>';
             if (count($aItem["children"])) {
                 $aOut[] = $this->parseTreeSelection($sFieldname, $aItem["children"]);
             }
@@ -207,7 +210,7 @@
             $aArr["media"] = $aMediaUsedTotal;
         }
 
-/*
+        /*
         dump($aArr);
         return;
 */
@@ -271,10 +274,10 @@
                         $aMediaPath[] = $aItem["category_id"];
                     }
                     $aMediaPathLabel = [];
-                    foreach($aMediaPath AS $iCategoryId) {
+                    foreach ($aMediaPath as $iCategoryId) {
                         $aMediaPathLabel[] = rex_media_category::get($iCategoryId)->getName();
                     }
-                    $sMediaPath = implode(" > ",$aMediaPathLabel);
+                    $sMediaPath = implode(" > ", $aMediaPathLabel);
 
                     $aFiles[] = array(
                         "id" => $aItem["id"],
@@ -334,10 +337,64 @@
         return false;
     }
 
-    public function checkMediaExists($sFilename,$iWidth,$iHeight,$iFilesize) {
+    public function checkMediaExists($sFilename, $iWidth, $iHeight, $iFilesize)
+    {
         $oDb = rex_sql::factory();
         $sQuery = 'SELECT * FROM ' . rex::getTablePrefix() . 'media WHERE filename = :filename && width = :width && height = :height && filesize = :filesize Limit 1';
-        $oDb->setQuery($sQuery,['filename' => $sFilename,'width' => $iWidth,'height' => $iHeight,'filesize' => $iFilesize]);
+        $oDb->setQuery($sQuery, ['filename' => $sFilename, 'width' => $iWidth, 'height' => $iHeight, 'filesize' => $iFilesize]);
         return $oDb;
+    }
+
+    static function getPanel($ep)
+    {
+        $oAddon = rex_addon::get(self::$oAddon);
+
+        $oMigrator = new nvContentMigrator;
+
+        //Vorgaben einlesen/setzen
+        $op = $ep->getSubject();                                                //Content des ExtPoint (z.B. Seiteninhalt)
+        $params = $ep->getParams();                                            //alle Parameter des ExtPoint holen (z.B. Article-ID)
+        $article_id = $params['article_id'];                                            //ID des Artikels
+        $clang = $params['clang'];                                                //ID der Sprachversion
+        $ctype = $params['ctype'];
+
+        $csrfToken = rex_csrf_token::factory('nv_contentmigrator');
+        if (rex_post('export', 'string')) {
+
+            if (!$csrfToken->isValid()) {
+                echo rex_view::error("Ein Fehler ist aufgetreten. Bitte wenden Sie sich an den Webmaster.");
+                return;
+            }
+
+            $iArticlesId = rex_request('nv_articles_id', 'int');
+            $oMigrator->export($iArticlesId);
+        }
+
+        $panel = "";
+        $panel .= '<form action="" method="post">
+			<div class="nv_contentmigrator">
+				' . $csrfToken->getHiddenField() . '
+                <button class="btn btn-primary" type="submit" name="export" value="1">' . $oAddon->i18n('nv_contentmigrator_btn_export') . '</button>
+                <a class="btn btn-primary" href="/redaxo/index.php?page=nv_contentmigrator/import&nv_articles_id=' . $article_id . '&nv_clang_id=' . $clang . '&nv_ctype_id=' . $ctype . '" onclick="newWindow(\'nv_contentmigrator\', this.href, 1000,800,\',status=yes,resizable=yes\');return false;">' . $oAddon->i18n('nv_contentmigrator_btn_import') . '</a>
+			<input type="hidden" name="nv_articles_id" value="' . $article_id . '">
+			<input type="hidden" name="nv_clang_id" value="' . $clang . '">
+			<input type="hidden" name="nv_ctype_id" value="' . $ctype . '">
+                </div>
+            </form>';
+
+
+        //SEO-Panel erstellen und ausgeben
+        $collapsed = false;
+        $frag = new rex_fragment();
+        $frag->setVar('title', '<div class="seocu-title"><i class="rex-icon fa-copy"></i> nvContentMigrator<div class="seocu-resultbar-wrapper"><div class="seocu-resultbar"></div></div></div>', false);
+        $frag->setVar('body', $panel, false);
+        $frag->setVar('article_id', $article_id, false);
+        $frag->setVar('clang', $clang, false);
+        $frag->setVar('ctype', $ctype, false);
+        $frag->setVar('collapse', true);                                //schließbares Panel - true|false
+        $frag->setVar('collapsed', $collapsed);                            //Panel geschlossen starten - true|false
+        $cnt = $frag->parse('core/page/section.php');
+
+        return $op . $cnt;
     }
 }
