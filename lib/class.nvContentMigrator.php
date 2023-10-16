@@ -82,7 +82,7 @@
         $oItems->setQuery($sQuery);
 
         foreach ($oItems as $oItem) {
-            array_push($aItems, array("name" => $oItem->getValue("name"), "level" => $iLevel, "priority" => $oItem->getValue("catpriority"), id => $oItem->getValue(id), "parent_id" => $oItem->getValue("parent_id"), "children" => $this->getTree($oItem->getValue("id"), $iLevel + 1)));
+            array_push($aItems, array("name" => $oItem->getValue("name"), "level" => $iLevel, "priority" => $oItem->getValue("catpriority"), "id" => $oItem->getValue("id"), "parent_id" => $oItem->getValue("parent_id"), "children" => $this->getTree($oItem->getValue("id"), $iLevel + 1)));
         }
 
         return $aItems;
@@ -93,7 +93,7 @@
         $oItems = rex_sql::factory();
         $sQuery = "SELECT id,code,name FROM " . rex::getTablePrefix() . "clang ORDER BY priority ASC Limit 1";
         $oItems->setQuery($sQuery);
-        return $oItems->getValue(id);
+        return $oItems->getValue("id");
     }
 
     public function parseTreeList($aItems)
@@ -177,7 +177,7 @@
 
         $aArr["slices"] = array();
         $oDbQ = rex_sql::factory();
-        $sQuery = "SELECT s.* FROM " . rex::getTablePrefix() . "article_slice AS s LEFT JOIN " . rex::getTablePrefix() . "article AS a ON s.article_id = a.id WHERE (a.id = '$iArticlesId' OR a.path LIKE '|$iArticlesId|%') && a.clang_id = '" . $this->getDefaultClangId() . "'  && s.clang_id = '" . $this->getDefaultClangId() . "' ORDER BY s.priority ASC";
+        $sQuery = "SELECT s.* FROM " . rex::getTablePrefix() . "article_slice AS s LEFT JOIN " . rex::getTablePrefix() . "article AS a ON s.article_id = a.id WHERE (a.id = '$iArticlesId') && a.clang_id = '" . $this->getDefaultClangId() . "'  && s.clang_id = '" . $this->getDefaultClangId() . "' ORDER BY s.priority ASC";
         $oDbQ->setQuery($sQuery);
         foreach ($oDbQ as $oRow) {
             $aSlice = array();

@@ -1,7 +1,7 @@
 # Alle hier gesetzten Werte können über `$addon->getProperty($key)` abgefragt werden
 
 package: nv_contentmigrator # Pflichtfeld
-version: '1.3-beta' # Pflichtfeld
+version: '1.4-beta' # Pflichtfeld
 author: novinet GmbH & Co KG
 supportpage: https://novinet.de
 
